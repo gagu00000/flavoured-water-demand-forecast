@@ -9,6 +9,9 @@ AI in Operations, Session II lab. This project forecasts monthly demand for a ne
 | LLM system prompt (shared by the notebook and the dashboard) | `prompts/interpretation_system.md` |
 | Interactive dashboard (React + TypeScript, deployed on Netlify) | `dashboard/` |
 | Implementation plan and traceability table | `PHASE2_PLAN.md` |
+| Final audit, traceability and test results | `TEST_REPORT.md` |
+| Netlify configuration and step-by-step deployment | `DEPLOYMENT.md` |
+| Live dashboard | https://flavoured-water-forecast.netlify.app |
 
 ## Running the notebook
 
@@ -61,7 +64,7 @@ Dashboard tests:
 ~/.venvs/aio-forecast/Scripts/python -m pytest forecasting_core/tests -q
 ```
 
-There are 39 tests. They cover:
+There are 45 Python tests, plus 59 dashboard unit/parity tests and 17 browser tests. The Python tests cover:
 - MAPE/WAPE hand calculations and zero handling;
 - no feature leakage, the chronological split, and identical backtest folds across models;
 - the model rules, determinism, and JSON output;

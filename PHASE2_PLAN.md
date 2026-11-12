@@ -2,7 +2,7 @@
 
 **Use case:** Forecasting Monthly Sales for a New Beverage Product (AI in Operations, Session II Lab, slide 64)
 **Dataset:** Kaggle "Beverage Sales" (sebastianwillmann), `synthetic_beverage_sales_data.csv`
-**Status:** Plan only. No development code yet. Waiting for "Plan approved, begin development".
+**Status:** Approved and implemented. See `TEST_REPORT.md` for the final audit and `DEPLOYMENT.md` for deployment. Changes made during development are logged in §8b.
 
 ---
 

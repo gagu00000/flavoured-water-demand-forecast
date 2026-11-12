@@ -68,24 +68,29 @@ export function customerLabel(type: string): string {
   return type === ALL ? "All customers" : `${type} customers`;
 }
 
-function viewLabel(n: number, s: ScenarioState): string {
-  const userData = s.customMonths.length > 0 || Object.keys(s.overrides).length > 0;
-  if (n === 12 && !userData) return "Launch year (first 12 months)";
-  return `${n} months of history (launch year + live data feed${userData ? ", including user-entered data" : ""})`;
+function viewLabel(n: number, userMonths: number): string {
+  if (n === 12 && userMonths === 0) return "Launch year (first 12 months)";
+  return `${n} months of history (launch year + live data feed${userMonths ? ", including user-entered data" : ""})`;
+}
+
+/** Corrections that fall inside the months currently in the series (later ones wait for the feed). */
+function activeOverrides(s: ScenarioState, months: string[]): string[] {
+  return Object.keys(s.overrides).filter((m) => months.includes(m));
 }
 
 export function buildRequest(cube: MonthlyCube, s: ScenarioState): EngineRequest {
   const records = buildSeries(cube, s);
+  const months = records.map((r) => r.month);
   const notes: string[] = [];
   if (records.some((r) => r.month === "2023-12" && !(r.month in s.overrides))) notes.push(PARTIAL_MONTH_NOTE);
-  const userMonths = s.customMonths.length + Object.keys(s.overrides).length;
+  const userMonths = s.customMonths.length + activeOverrides(s, months).length;
   if (userMonths > 0) notes.push(`${userMonths} month(s) of sales were entered or corrected by the user.`);
 
   const context: EngineContext = {
     product: s.filters.product,
     region: regionLabel(s.filters.region),
     customer_type: customerLabel(s.filters.customerType),
-    view: viewLabel(records.length, s),
+    view: viewLabel(records.length, userMonths),
     unit: "units",
     data_version: s.dataVersion,
     notes,

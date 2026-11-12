@@ -75,6 +75,12 @@ describe("engine request", () => {
     expect(req.context.notes.join(" ")).toMatch(/entered or corrected by the user/);
   });
 
+  it("corrections outside the current window are not counted as user data", () => {
+    const req = buildRequest(cube, { ...initialScenario(), overrides: { "2022-06": 1 } });
+    expect(req.context.notes).toEqual([]);
+    expect(req.context.view).toBe("Launch year (first 12 months)");
+  });
+
   it("no regional allocation for a single-region view", () => {
     expect(buildRequest(cube, { ...initialScenario(), filters: { ...VT, region: "Berlin" } }).regional).toBeNull();
   });
