@@ -1,0 +1,37 @@
+# Raw data (789 MB) - never committed; download from Kaggle (see README)
+synthetic_beverage_sales_data.csv
+*.zip
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Node / build
+node_modules/
+dist/
+.netlify/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Generated at build time from ../forecasting_core
+dashboard/public/py/
+dashboard/server/prompt.generated.ts
+
+# Playwright output
+dashboard/test-results/
+dashboard/playwright-report/
+
+# Local-only files: slide photos and editor/agent config
+WhatsApp Image*.jpeg
+.claude/
