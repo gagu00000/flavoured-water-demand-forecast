@@ -1,14 +1,16 @@
 // The AI Analyst: answers the brief's three interpretation questions from the
 // live results currently on screen (LLM, grounded), with a clearly labelled
-// rule-based fallback.
+// rule-based fallback, and lets the manager chat about those results in real time.
 
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, BadgeCheck, Bot, RefreshCw, Sparkles } from "lucide-react";
-import { Badge, Button } from "../components/ui";
+import { useState } from "react";
+import { Badge, Button, Segmented } from "../components/ui";
 import { monthLabel } from "../lib/format";
 import { hashJson } from "../lib/hash";
 import { useInterpretation } from "../llm/interpretation";
 import { useDashboard } from "../state/store";
+import { ChatView } from "./ChatView";
 
 const QUESTIONS = [
   { key: "seasonality_trend", q: "How well did the model capture seasonality or trends?" },
@@ -23,6 +25,7 @@ export function AiAnalystPanel() {
   const stale = st.forHash !== null && st.forHash !== currentHash;
   const busy = st.status === "waiting" || st.status === "loading";
   const it = st.interpretation;
+  const [view, setView] = useState<"summary" | "chat">("summary");
 
   return (
     <aside id="ai-analyst" className="glass flex scroll-mt-4 flex-col p-4 sm:p-5" aria-label="AI Analyst interpretation">
@@ -33,13 +36,32 @@ export function AiAnalystPanel() {
           </div>
           <div>
             <h2 className="font-display text-[16px] font-semibold">AI Analyst</h2>
-            <p className="text-[11.5px] text-ink-2">Interprets the live results on screen</p>
+            <p className="text-[11.5px] text-ink-2">Interprets and discusses the live results on screen</p>
           </div>
         </div>
-        <Button onClick={st.regenerate} disabled={busy || !result} title="Ask the AI again for the current results" aria-label="Regenerate interpretation">
-          <RefreshCw size={13} className={busy ? "animate-spin" : ""} aria-hidden />
-        </Button>
+        {view === "summary" && (
+          <Button onClick={st.regenerate} disabled={busy || !result} title="Ask the AI again for the current results" aria-label="Regenerate interpretation">
+            <RefreshCw size={13} className={busy ? "animate-spin" : ""} aria-hidden />
+          </Button>
+        )}
       </header>
+
+      <div className="mb-3">
+        <Segmented
+          label="AI Analyst view"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "summary", label: "Summary (Q1–Q3)" },
+            { value: "chat", label: "Chat" },
+          ]}
+        />
+      </div>
+
+      {view === "chat" ? (
+        <ChatView />
+      ) : (
+      <>
 
       <div className="mb-3 flex flex-wrap items-center gap-1.5" aria-live="polite">
         {busy && <Badge tone="citrus">{st.status === "waiting" ? "New data, updating soon…" : "Analysing the latest results…"}</Badge>}
@@ -119,6 +141,8 @@ export function AiAnalystPanel() {
             {st.unverified.length > 0 && ` · unverified: ${st.unverified.join(", ")}`}
           </p>
         </motion.div>
+      )}
+      </>
       )}
     </aside>
   );

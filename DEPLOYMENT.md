@@ -3,7 +3,7 @@
 **Live site:** https://flavoured-water-forecast.netlify.app
 **Repository:** https://github.com/gagu00000/flavoured-water-demand-forecast (private)
 
-The site is static: it runs the forecasting engine in the visitor's browser. One Netlify Function (`/api/interpret`) calls the LLM with a key that never leaves the server.
+The site is static: it runs the forecasting engine in the visitor's browser. Two Netlify Functions call the LLM with a key that never leaves the server: `/api/interpret` writes the Q1–Q3 interpretation, and `/api/chat` streams chat answers.
 
 ## 1. Netlify configuration (`netlify.toml`, repository root)
 
@@ -12,7 +12,7 @@ The site is static: it runs the forecasting engine in the visitor's browser. One
 | `base` | `dashboard` | The build runs inside `dashboard/`. The build script also copies in `../forecasting_core` and `../prompts`. |
 | `command` | `npm run build` | Copies the shared Python engine and prompt, type-checks, and builds with Vite. |
 | `publish` | `dist` (that is, `dashboard/dist`) | Static output. |
-| `functions` | `netlify/functions` | The `interpret.mts` function (path `/api/interpret`, POST only, rate-limited to 10 requests per minute per visitor). |
+| `functions` | `netlify/functions` | `interpret.mts` (`/api/interpret`, POST, 10 requests per minute per visitor) and `chat.mts` (`/api/chat`, POST, streamed, 15 messages per minute per visitor). |
 | `NODE_VERSION` | `22` | Vite 8 needs Node 20.19 or later. |
 | Headers | `nosniff`, `DENY` framing, referrer and permissions policies; one-year cache for `/assets/*` | Basic hardening and fast repeat visits. |
 

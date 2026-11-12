@@ -25,6 +25,8 @@ const LLM_ANSWER = {
 test.describe.serial("Flavoured water forecasting dashboard", () => {
   let page: Page;
   let llmMode: LlmMode = "ok";
+  let chatMode: LlmMode = "ok";
+  const chatRequests: { messages: { role: string; content: string }[]; data_version: number }[] = [];
   const llmRequests: { data_version: number; last_month: string; last_change?: string }[] = [];
   const pageErrors: string[] = [];
 
@@ -46,6 +48,19 @@ test.describe.serial("Flavoured water forecasting dashboard", () => {
         await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, reason: "The AI service is busy right now.", retryable: true }) });
       } else {
         await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(LLM_ANSWER) });
+      }
+    });
+    await page.route("**/api/chat", async (route: Route) => {
+      const body = route.request().postDataJSON() as { messages: { role: string; content: string }[]; snapshot: { context: { data_version: number } } };
+      chatRequests.push({ messages: body.messages, data_version: body.snapshot.context.data_version });
+      if (chatMode === "busy") {
+        await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, reason: "The AI service is busy right now. Please try again in a moment.", retryable: true }) });
+      } else {
+        await route.fulfill({
+          status: 200,
+          headers: { "content-type": "text/plain; charset=utf-8", "x-llm-model": "chat-test" },
+          body: "For 2022-01 the planning model forecasts 160,396 units (95% range 152,520 to 168,272).",
+        });
       }
     });
     await page.goto("/");
@@ -202,6 +217,35 @@ test.describe.serial("Flavoured water forecasting dashboard", () => {
     await page.getByRole("link", { name: "AI Analyst" }).click();
     await expect(ai()).toBeInViewport();
     await page.setViewportSize({ width: 1440, height: 900 });
+  });
+
+  test("Chat: ask a question and get a verified, data-aware answer", async () => {
+    await ai().getByRole("radio", { name: "Chat" }).click();
+    await ai().getByRole("button", { name: /How much should we produce next month/ }).click();
+    await expect(ai().getByText(/forecasts 160,396 units/)).toBeVisible();
+    await expect(ai().getByText("3/3 figures verified")).toBeVisible();
+    expect(chatRequests.at(-1)!.messages.at(-1)!.content).toMatch(/How much should we produce next month/);
+  });
+
+  test("Chat: follow-ups carry the conversation and the latest data", async () => {
+    const input = ai().getByLabel("Ask the AI Analyst");
+    await input.fill("And for February?");
+    await input.press("Enter");
+    await expect.poll(() => chatRequests.length).toBe(2);
+    expect(chatRequests.at(-1)!.messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
+  });
+
+  test("Chat: a busy service shows a friendly message and lets you ask again", async () => {
+    chatMode = "busy";
+    const input = ai().getByLabel("Ask the AI Analyst");
+    await input.fill("Which regions need the most stock?");
+    await ai().getByRole("button", { name: "Send question" }).click();
+    await expect(ai().getByText(/busy right now/)).toBeVisible();
+    chatMode = "ok";
+    await ai().getByRole("button", { name: "ask again" }).click();
+    await expect(ai().getByText(/forecasts 160,396 units/).last()).toBeVisible();
+    await ai().getByRole("button", { name: "Clear chat" }).click();
+    await expect(ai().getByRole("button", { name: /Explain WAPE vs MAPE/ })).toBeVisible();
   });
 
   test("no console errors or uncaught exceptions during the whole session", async () => {

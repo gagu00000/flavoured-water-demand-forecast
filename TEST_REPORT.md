@@ -7,9 +7,9 @@ Final end-to-end audit of the notebook, the shared forecasting engine, the dashb
 | Suite | Command | Result |
 |---|---|---|
 | Python engine (metrics, features/leakage, split, models, pipeline, grounding, key facts) | `python -m pytest forecasting_core/tests -q` | **45 passed** |
-| Dashboard unit tests (data layer, store, view models, TypeScript metric cross-check, LLM handler, grounding twin) | `npm test` (unit part) | **53 passed** |
+| Dashboard unit tests (data layer, store, view models, TypeScript metric cross-check, LLM handler, grounding twin, chat endpoint) | `npm test` (unit part) | **64 passed** |
 | Parity: the browser engine (Pyodide) must reproduce the notebook on 5 configurations, plus an error case | `npm run test:parity` | **6 passed** |
-| End-to-end, production build in Chrome (LLM mocked) | `npm run test:e2e` | **17 passed**, 0 console errors |
+| End-to-end, production build in Chrome (LLM mocked) | `npm run test:e2e` | **20 passed**, 0 console errors |
 | Notebook, run top to bottom | `jupyter nbconvert --execute` | 72 cells (32 code), **0 errors**, 9 charts; every code cell has a markdown cell before it |
 | Dependency audit | `npm audit` | **0 vulnerabilities** |
 
@@ -68,7 +68,19 @@ Final end-to-end audit of the notebook, the shared forecasting engine, the dashb
 - **Exposure:** `netlify.toml` and server source return 404 on the live site, and no secrets are in Git or the deployed assets.
 - **Live performance:** the page loads in under 1 s; the engine is ready in about 13 s on first load; a "next month" re-run takes about 1 s; an AI answer takes about 7–11 s, with all 23–28 quoted figures verified.
 
-## 6. Known limitations (by design)
+## 6. AI Analyst chat (added after the audit)
+
+| Check | Result |
+|---|---|
+| Real time | Answers stream as they are generated. Locally: first words after ~1 s, full answer in ~3 s |
+| Uses the live results | Each question carries the snapshot on screen now. After "Next month arrives", the thread shows "Results updated: data version 2 …" and the answer reflects January 2022 |
+| Grounding | Every figure in a finished answer is checked against the snapshot ("N/N figures verified", or a warning listing figures not in the data) |
+| Conversation memory | The last 9 turns are sent as context; follow-ups work (e2e) |
+| Limits and abuse | Questions ≤ 600 characters, ≤ 10 turns, body ≤ 64 KB, 15 messages per minute per visitor, key never returned (unit tests) |
+| Failures | Busy service → retried once → friendly message with "ask again"; a broken stream ends with a note (unit + e2e) |
+| Scope | The chat prompt keeps answers to this forecast, forbids invented numbers or causes, and declines unrelated requests |
+
+## 7. Known limitations (by design)
 
 - The dataset is synthetic and shows no real seasonality. This is tested and reported, not hidden.
 - The in-browser engine needs about 8–13 s to start. Precomputed results are shown meanwhile.

@@ -41,7 +41,9 @@ AI in Operations, Session II lab. This project forecasts monthly demand for a ne
 **Where each part runs:**
 - **Monthly aggregates:** the notebook turns the 789 MB CSV into `dashboard/public/data/*.json`. This step is precomputed because the raw file is far too large for a browser, a serverless function or GitHub.
 - **Features, all six models, metrics and the backtest:** these run **in the browser**, in a Web Worker. It uses Pyodide (Python compiled to WebAssembly) with the same `forecasting_core` code as the notebook.
-- **The LLM call:** this runs in the **Netlify Function** `dashboard/netlify/functions/interpret.mts`. The key never reaches the browser.
+- **The LLM calls:** these run in two **Netlify Functions**. The key never reaches the browser.
+  - `interpret.mts` writes the grounded Q1–Q3 interpretation.
+  - `chat.mts` powers the **AI Analyst chat**: answers stream in real time and are always based on the results currently on screen, and every figure in an answer is checked against the data.
 
 ```bash
 cd dashboard && npm install
@@ -50,7 +52,7 @@ cd dashboard && npm install
 npm run dev
 ```
 
-`npm run dev` serves the site at http://localhost:5173. It also serves `/api/interpret` locally, using `NVIDIA_API_KEY` from the project's `.env`.
+`npm run dev` serves the site at http://localhost:5173. It also serves `/api/interpret` and `/api/chat` locally, using `NVIDIA_API_KEY` from the project's `.env`.
 
 Dashboard tests:
 - `npm test` runs the unit and parity tests (the browser engine must reproduce the notebook).
@@ -64,7 +66,7 @@ Dashboard tests:
 ~/.venvs/aio-forecast/Scripts/python -m pytest forecasting_core/tests -q
 ```
 
-There are 45 Python tests, plus 59 dashboard unit/parity tests and 17 browser tests. The Python tests cover:
+There are 45 Python tests, plus 70 dashboard unit/parity tests and 20 browser tests. The Python tests cover:
 - MAPE/WAPE hand calculations and zero handling;
 - no feature leakage, the chronological split, and identical backtest folds across models;
 - the model rules, determinism, and JSON output;
