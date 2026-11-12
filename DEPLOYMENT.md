@@ -1,7 +1,7 @@
 # Deployment: GitHub → Netlify
 
 **Live site:** https://flavoured-water-forecast.netlify.app
-**Repository:** https://github.com/gagu00000/flavoured-water-demand-forecast (private)
+**Repository:** https://github.com/gagu00000/flavoured-water-demand-forecast (public)
 
 The site is static: it runs the forecasting engine in the visitor's browser. Two Netlify Functions call the LLM with a key that never leaves the server: `/api/interpret` writes the Q1–Q3 interpretation, and `/api/chat` streams chat answers.
 

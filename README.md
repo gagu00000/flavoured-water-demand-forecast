@@ -8,6 +8,7 @@ AI in Operations, Session II lab. This project forecasts monthly demand for a ne
 | Shared forecasting engine (used by both the notebook and the dashboard) | `forecasting_core/` |
 | LLM system prompt (shared by the notebook and the dashboard) | `prompts/interpretation_system.md` |
 | Interactive dashboard (React + TypeScript, deployed on Netlify) | `dashboard/` |
+| Two-page executive report (PDF) | `Executive_Report.pdf` |
 | Implementation plan and traceability table | `PHASE2_PLAN.md` |
 | Final audit, traceability and test results | `TEST_REPORT.md` |
 | Netlify configuration and step-by-step deployment | `DEPLOYMENT.md` |
